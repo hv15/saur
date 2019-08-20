@@ -27,7 +27,7 @@ def parse_config (conf_file, conf):
                         conf[k] = True
                 print ('done')
 
-            if 'packages' not in config:
+            if 'packages' not in config or not config['packages']:
                 print ('The config file has no packages listed!')
                 sys.exit (1)
             else:
@@ -135,6 +135,8 @@ if __name__ == '__main__':
     conf = { 'verbose': False,
              'cachedir': xdg_cache_home + '/saur',
              'datadir': xdg_data_home + '/saur',
+             'dbroot': None,
+             'dbname': None,
              'flags':
              { 'def': [],
                'sync': ["-n", "--noview", "--continue"] },
@@ -153,14 +155,19 @@ if __name__ == '__main__':
     args = parser.parse_args ()
     parse_config (args.config, conf)
 
+    if args.root:
+        conf['dbroot'] = args.root
+    if args.db_name:
+        conf['dbname'] = args.db_name
+
+    if conf['dbroot']:
+        conf['flags']['def'].append('--root=%s' % (conf['dbroot']))
+    if conf['dbname']:
+        conf['flags']['def'].append('-d')
+        conf['flags']['def'].append(conf['dbname'])
+
     if conf['verbose']:
         print (conf)
-
-    if args.root:
-        conf['flags']['def'].append('--root=%s' % (args.root))
-    if args.db_name:
-        conf['flags']['def'].append('-d')
-        conf['flags']['def'].append(args.db_name)
 
     if args.cmd == 'sync':
         run_sync (conf)
