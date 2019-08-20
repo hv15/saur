@@ -65,7 +65,7 @@ def get_basepkg (pkg, conf):
 def apply_custom (conf):
     if not os.path.isdir (conf['datadir']):
         print (f"Unable to find {conf['datadir']}, creating it...")
-        os.mkdir (conf['datadir'])
+        os.makedirs (conf['datadir'])
 
     for p, v in conf['packages'].items ():
         if v != None:
@@ -87,7 +87,7 @@ def apply_custom (conf):
 def run_fetch (conf):
     if not os.path.isdir (conf['cachedir']):
         print (f"Unable to find {conf['cachedir']}, creating it...")
-        os.mkdir (conf['cachedir'])
+        os.makedirs (conf['cachedir'])
 
     cmd = ["aur", "fetch", "-r"]
 
