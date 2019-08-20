@@ -143,8 +143,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='This is SAUR, the Emperor of AUR/PKGBUILD local repository management.')
     parser.add_argument('cmd', help='subcommand to run: sync, list, fetch')
-    parser.add_argument('--config', metavar='PATH', type=str, default=xdg_config_home + '/config.ini',
-            help='path to config file (default: $XDG_CONFIG_HOME/config.ini)')
+    parser.add_argument('--config', metavar='PATH', type=str, default=xdg_config_home + '/saur/config.ini',
+            help='path to config file (default: $XDG_CONFIG_HOME/saur/config.ini)')
     parser.add_argument('--root', metavar='PATH', type=str,
             help='path to repo db location')
     parser.add_argument('--db-name', metavar='NAME', type=str,
