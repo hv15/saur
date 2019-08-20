@@ -117,6 +117,9 @@ def run_sync (conf):
 
     # we now build and add to db
     os.environ['AURDEST'] = conf['cachedir']
+    # if we are signing, we need to set the default key to use
+    if conf['gpgkey']:
+        os.environ['GPGKEY'] = conf['gpgkey']
     ret = cmd (["aur", "sync"] + conf['flags']['sync'] + conf['flags']['def'] + list(conf['packages'].keys()), inline=True)
 
 def run_list (conf):
@@ -137,6 +140,7 @@ if __name__ == '__main__':
              'datadir': xdg_data_home + '/saur',
              'dbroot': None,
              'dbname': None,
+             'gpgkey': None,
              'flags':
              { 'def': [],
                'sync': ["-n", "--noview", "--continue"] },
@@ -151,6 +155,8 @@ if __name__ == '__main__':
             help='path to repo db location')
     parser.add_argument('--db-name', metavar='NAME', type=str,
             help='repo db name')
+    parser.add_argument('--gpg-key', metavar='KEY', type=str,
+            help='GPG key for signing (default: do not sign)')
 
     args = parser.parse_args ()
     parse_config (args.config, conf)
@@ -159,12 +165,16 @@ if __name__ == '__main__':
         conf['dbroot'] = args.root
     if args.db_name:
         conf['dbname'] = args.db_name
+    if args.gpg_key:
+        conf['gpgkey'] = args.gpg_key
 
     if conf['dbroot']:
         conf['flags']['def'].append('--root=%s' % (conf['dbroot']))
     if conf['dbname']:
         conf['flags']['def'].append('-d')
         conf['flags']['def'].append(conf['dbname'])
+    if conf['gpgkey']:
+        conf['flags']['def'].append('--sign')
 
     if conf['verbose']:
         print (conf)
