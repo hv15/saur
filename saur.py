@@ -153,7 +153,8 @@ if __name__ == '__main__':
     args = parser.parse_args ()
     parse_config (args.config, conf)
 
-    print (conf)
+    if conf['verbose']:
+        print (conf)
 
     if args.root:
         conf['flags']['def'].append('--root=%s' % (args.root))
