@@ -162,10 +162,14 @@ if __name__ == '__main__':
              'bpackages': None }
 
     parser = argparse.ArgumentParser(prog='saur', description='This is SAUR, the Emperor of AUR/PKGBUILD local repository management.')
-    parser.add_argument('cmd', help='subcommand to run: sync, list, fetch')
     parser.add_argument('--version', action='version', version=f'%(prog)s {VERSION}', help='print version and exit')
     parser.add_argument('-c','--config', metavar='PATH', type=str, default=xdg_config_home + '/saur/config.ini',
             help='path to config file (default: $XDG_CONFIG_HOME/saur/config.ini)')
+
+    subparsers = parser.add_subparsers(required=True, dest='cmd', title='subcommands')
+    parser_fetch = subparsers.add_parser('fetch', help='fetch packages (this overwrites all changes!)')
+    parser_list = subparsers.add_parser('list', help='print list of packages in CONFIG')
+    parser_sync = subparsers.add_parser('sync', help='build a package (or more) if it is newer then in the repository')
 
     args = parser.parse_args ()
     parse_config (args.config, conf)
