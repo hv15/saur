@@ -8,6 +8,9 @@ import subprocess
 import git
 from xdg.BaseDirectory import (xdg_data_home, xdg_config_home, xdg_cache_home)
 
+# global constants
+VERSION='1.0.0'
+
 def parse_config (conf_file, conf):
     if not os.path.exists (conf_file):
         print (f'No config file at {conf_file}!')
@@ -37,6 +40,17 @@ def parse_config (conf_file, conf):
                 for p in conf['packages'].keys():
                     get_basepkg (p, conf)
                 print ('done')
+
+            if conf['dbroot']:
+                conf['flags']['def'].append('--root=%s' % (conf['dbroot']))
+            if conf['dbname']:
+                conf['flags']['def'].append('-d')
+                conf['flags']['def'].append(conf['dbname'])
+            if conf['gpgkey']:
+                conf['flags']['def'].append('--sign')
+
+            if conf['verbose']:
+                print (conf)
 
 def cmd (cmd, inline=False, cwd=None):
     ret = None
@@ -147,37 +161,14 @@ if __name__ == '__main__':
              'packages': None,
              'bpackages': None }
 
-    parser = argparse.ArgumentParser(description='This is SAUR, the Emperor of AUR/PKGBUILD local repository management.')
+    parser = argparse.ArgumentParser(prog='saur', description='This is SAUR, the Emperor of AUR/PKGBUILD local repository management.')
     parser.add_argument('cmd', help='subcommand to run: sync, list, fetch')
-    parser.add_argument('--config', metavar='PATH', type=str, default=xdg_config_home + '/saur/config.ini',
+    parser.add_argument('--version', action='version', version=f'%(prog)s {VERSION}', help='print version and exit')
+    parser.add_argument('-c','--config', metavar='PATH', type=str, default=xdg_config_home + '/saur/config.ini',
             help='path to config file (default: $XDG_CONFIG_HOME/saur/config.ini)')
-    parser.add_argument('--root', metavar='PATH', type=str,
-            help='path to repo db location')
-    parser.add_argument('--db-name', metavar='NAME', type=str,
-            help='repo db name')
-    parser.add_argument('--gpg-key', metavar='KEY', type=str,
-            help='GPG key for signing (default: do not sign)')
 
     args = parser.parse_args ()
     parse_config (args.config, conf)
-
-    if args.root:
-        conf['dbroot'] = args.root
-    if args.db_name:
-        conf['dbname'] = args.db_name
-    if args.gpg_key:
-        conf['gpgkey'] = args.gpg_key
-
-    if conf['dbroot']:
-        conf['flags']['def'].append('--root=%s' % (conf['dbroot']))
-    if conf['dbname']:
-        conf['flags']['def'].append('-d')
-        conf['flags']['def'].append(conf['dbname'])
-    if conf['gpgkey']:
-        conf['flags']['def'].append('--sign')
-
-    if conf['verbose']:
-        print (conf)
 
     if args.cmd == 'sync':
         run_sync (conf)

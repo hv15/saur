@@ -1,4 +1,4 @@
-SAUR is the AUR Emperor!
+SAUR the Emperor of AUR local repository management!
 ========================
 
 SAUR (pronounced /zɑːr/) is a wrapper script around the excellent
