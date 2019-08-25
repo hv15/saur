@@ -64,8 +64,8 @@ def cmd (cmd, inline=False, cwd=None):
     try:
         ret = subprocess.run (cmd, cwd=cwd, check=True, **args)
     except subprocess.CalledProcessError as e:
-        print(f'\nBinary `{cmd[0]}\' failed with return %d!' % (e.returncode))
-        print(e.stderr)
+        print(f'\nCommand `%s\' failed with return %d!' % (' '.join(cmd), e.returncode))
+        print(' ',e.stderr.decode())
         sys.exit(e.returncode)
     return ret
 
@@ -105,22 +105,17 @@ def run_fetch (conf):
 
     cmd = ["aur", "fetch", "-r"]
 
-    try:
-        print ('Fetching packges... ', end='')
-        for p, v in conf['packages'].items ():
-            if os.path.exists (conf['cachedir'] + '/' + p):
-                # we intentionally do a hard reset as aur-fetch
-                # would otherwise try to replay and changes. We
-                # don't want this as it would conflict with applying
-                # patches, especially if they are new.
-                repo = git.Repo (conf['cachedir'] + '/' + p)
-                repo.git.reset('--hard')
-            ret = subprocess.run (cmd + [p], cwd=conf['cachedir'], check=True, capture_output=True)
-        print ('done')
-    except subprocess.CalledProcessError as e:
-        print('\naur-fetch failed with return %d!' % (e.returncode))
-        print(e.stderr)
-        sys.exit(e.returncode)
+    print ('Fetching packges... ', end='')
+    for p, v in conf['packages'].items ():
+        if os.path.exists (conf['cachedir'] + '/' + p):
+            # we intentionally do a hard reset as aur-fetch
+            # would otherwise try to replay our changes. We
+            # don't want this as it would conflict with applying
+            # patches, especially if they are new.
+            repo = git.Repo (conf['cachedir'] + '/' + p)
+            repo.git.reset('--hard')
+        ret = subprocess.run (cmd + [p], cwd=conf['cachedir'], check=True, capture_output=True)
+    print ('done')
 
 def run_sync (conf):
     # we fetch the packages
@@ -136,15 +131,38 @@ def run_sync (conf):
         os.environ['GPGKEY'] = conf['gpgkey']
     ret = cmd (["aur", "sync"] + conf['flags']['sync'] + conf['flags']['def'] + list(conf['packages'].keys()), inline=True)
 
-def run_list (conf):
-    print ('  Package                 Action')
-    print ('  -------------------  |  ------')
-    for p, c in conf['packages'].items():
-        if c is None:
-            c = 'default'
+def in_packages (conf, p):
+    if p in conf['bpackages']:
+        return conf['bpackages'][p]
+    elif p in conf['packages']:
+        return p
+    else:
+        return None
+
+def run_rebuild (conf, packages):
+    rebuild_list = []
+    for p in packages:
+        # we want to the base package name
+        bp = in_packages (conf, p)
+        if not bp:
+            print (f'Rebuilding new packages is not supported: {p}')
+        elif not os.path.exists (conf['cachedir'] + '/' + bp):
+            print (f'Package {p} was never fetched!')
         else:
-            c = 'patch'
-        print (f'  {p:<20} |  {c}')
+            rebuild_list.append(p)
+
+    os.environ['AURDEST'] = conf['cachedir']
+    # if we are signing, we need to set the default key to use
+    if conf['gpgkey']:
+        os.environ['GPGKEY'] = conf['gpgkey']
+    ret = cmd (["aur", "sync"] + conf['flags']['rebuild'] + conf['flags']['def'] + rebuild_list, inline=True)
+
+def run_list (conf):
+    wid = len(max (conf['packages'], key=len))+1
+    print ('\n  {:<{width}} |  Action'.format('Package', width=wid))
+    print (' ', ('{0}'*(wid-1)).format('-'), ' +  ------')
+    for p, c in conf['packages'].items():
+        print ('  {:<{width}} :  {}'.format(p, 'default' if c is None else 'patch', width=wid))
 
 if __name__ == '__main__':
 
@@ -157,7 +175,8 @@ if __name__ == '__main__':
              'gpgkey': None,
              'flags':
              { 'def': [],
-               'sync': ["-n", "--noview", "--continue"] },
+               'sync': ["-n", "--noview", "--continue"],
+               'rebuild': ["-n", "--noview", "--continue", "--rebuild"] },
              'packages': None,
              'bpackages': None }
 
@@ -169,6 +188,8 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(required=True, dest='cmd', title='subcommands')
     parser_fetch = subparsers.add_parser('fetch', help='fetch packages (this overwrites all changes!)')
     parser_list = subparsers.add_parser('list', help='print list of packages in CONFIG')
+    parser_rebuild = subparsers.add_parser('rebuild', help='rebuild a package (or more) and replace it in the repository')
+    parser_rebuild.add_argument(dest='packages', metavar='PACKAGE', nargs='+', help='package(s) to be rebuilt')
     parser_sync = subparsers.add_parser('sync', help='build a package (or more) if it is newer then in the repository')
 
     args = parser.parse_args ()
@@ -176,6 +197,8 @@ if __name__ == '__main__':
 
     if args.cmd == 'sync':
         run_sync (conf)
+    elif args.cmd == 'rebuild':
+        run_rebuild (conf, args.packages)
     elif args.cmd == 'list':
         run_list (conf)
     elif args.cmd == 'fetch':
