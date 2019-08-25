@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - include a setuptools `setup.py` script for potential distribution
 - git ignore for python projects
+- documentation to `sample_config.ini` file
 
 ## Changed
 - use subparser of `argparse` - makes subcommand handling cleaner
