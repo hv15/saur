@@ -9,7 +9,7 @@ import git
 from xdg.BaseDirectory import (xdg_data_home, xdg_config_home, xdg_cache_home)
 
 # global constants
-VERSION='1.0.0'
+VERSION='1.1.0'
 
 def parse_config (conf_file, conf):
     if not os.path.exists (conf_file):
@@ -65,7 +65,8 @@ def cmd (cmd, inline=False, cwd=None):
         ret = subprocess.run (cmd, cwd=cwd, check=True, **args)
     except subprocess.CalledProcessError as e:
         print(f'\nCommand `%s\' failed with return %d!' % (' '.join(cmd), e.returncode))
-        print(' ',e.stderr.decode())
+        if not inline:
+            print(' ',e.stderr.decode())
         sys.exit(e.returncode)
     return ret
 
@@ -117,7 +118,13 @@ def run_fetch (conf):
         ret = subprocess.run (cmd + [p], cwd=conf['cachedir'], check=True, capture_output=True)
     print ('done')
 
-def run_sync (conf):
+def run_sync (conf, exclude=None):
+    if exclude:
+        # remove members in exclude from package list
+        p = set(conf['packages'])
+        pp = p.difference (set (exclude))
+        conf['packages'] = list(pp)
+
     # we fetch the packages
     run_fetch (conf)
 
@@ -191,12 +198,13 @@ if __name__ == '__main__':
     parser_rebuild = subparsers.add_parser('rebuild', help='rebuild a package (or more) and replace it in the repository')
     parser_rebuild.add_argument(dest='packages', metavar='PACKAGE', nargs='+', help='package(s) to be rebuilt')
     parser_sync = subparsers.add_parser('sync', help='build a package (or more) if it is newer then in the repository')
+    parser_sync.add_argument('--exclude', metavar='PACKAGE', nargs='+', help='package(s) that should not be sync\'d')
 
     args = parser.parse_args ()
     parse_config (args.config, conf)
 
     if args.cmd == 'sync':
-        run_sync (conf)
+        run_sync (conf, args.exclude)
     elif args.cmd == 'rebuild':
         run_rebuild (conf, args.packages)
     elif args.cmd == 'list':
