@@ -2,24 +2,31 @@
 
 import setuptools
 
-with open("README.md", "r") as fh:
+import saur.version as ver
+
+with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 setuptools.setup(
         name='SAUR',
-        version='1.0.0',
+        version=ver.__version__,
         description='The Emporer of AUR scripts! Manage a local repository with easy.',
         long_description=long_description,
         long_description_content_type="text/markdown",
         author='Hans-Nikolai Viessmann',
         author_email='hans@viess.mn',
-        url='https://github.com/hv15/saur/',
+        url='https://github.com/hv15/saur',
         license='Unlicense',
-        packages=setuptools.find_packages(),
+        packages=setuptools.find_packages(exclude=('tests', 'docs')),
         classifiers=[
             "Programming Language :: Python :: 3",
-            "Operating System :: OS Independent",
+            "Operating System :: POSIX",
+            "Topic :: System :: Archiving :: Packaging",
             "Natural Language :: English",
             ],
-        scripts=['saur.py']
+        entry_points={
+            'console_scripts' : [
+                'saur = saur.console:run'
+                ]
+            },
         )

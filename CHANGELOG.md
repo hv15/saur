@@ -5,9 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.0] - 04.12.2021
 ### Added
 - include a setuptools `setup.py` script for potential distribution
 - testsuite for aur package (WIP)
+
+## Changed
+- refactor code
+- no long use `aur-sync`, instead use fetch/build manually
 
 ## [1.1.0] - 04.11.2019
 ### Added
@@ -31,5 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support GPG signing of packages and repository
 
 [Unreleased]: https://github.com/hv15/saur/compare/v1.0.0...HEAD
+[1.2.0]: https://github.com/hv15/saur/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/hv15/saur/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/hv15/saur/releases/v1.0.0
