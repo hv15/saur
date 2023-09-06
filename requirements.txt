@@ -4,8 +4,11 @@
 #
 #    pip-compile requirments.in
 #
-ddt==1.2.1                # via gitpython
-gitdb2==2.0.5             # via gitpython
-gitpython==3.0.1
+gitdb==4.0.10
+    # via gitpython
+gitpython==3.1.34
+    # via -r requirements.in
 pyxdg==0.26
-smmap2==2.0.5             # via gitdb2
+    # via -r requirements.in
+smmap==5.0.0
+    # via gitdb
